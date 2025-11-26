@@ -13,6 +13,7 @@ public class test {
 
         UserService service = new UserService();
 
+        System.out.println("开始测试");
         //打印密码问题测试
         try {
             //输入请求

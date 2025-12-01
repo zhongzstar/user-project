@@ -1,10 +1,10 @@
 package main.domain;
 
 public class User {
-    private String name = null;
-    private String password = null;
-    private String answer = null;
-    private String question = null;
+    private String name;
+    private String password;
+    private String answer;
+    private String question;
     public void User(){
     }
 
@@ -39,5 +39,15 @@ public class User {
 
     public String printUser(){
         return "用户名：" + this.name +"密码：" +this.password;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", password='" + password + '\'' +
+                ", answer='" + answer + '\'' +
+                ", question='" + question + '\'' +
+                '}';
     }
 }

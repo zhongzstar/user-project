@@ -3,13 +3,13 @@ package main.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import main.domain.DateSource;
 import main.domain.User;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class DateSourceService {
@@ -123,20 +123,26 @@ public class DateSourceService {
             throw e;
         }
     }
-    public void readDataSource(User user,DateSource dateSource){
-        if(dataList.contains(dateSource)){
-            for(DateSource ds : dataList){
-                if(ds.getUsername().equals(user.getName())){
-                    //有权限读取该数据源内容
-                    System.out.println("已生成该数据源！");
-                }
-                //无权限不读取
-                else{
-                    System.out.println("无权限读取该数据源！");
-                }
+    public void readDataSource(User user, DateSource dateSource) throws Exception {
+        // 查找指定用户和ID的数据源
+        DateSource target = null;
+        for(DateSource ds : dataList){
+            if(ds.getDataid() == dateSource.getDataid() && ds.getUsername().equals(user.getName())){
+                target = ds;
+                break;
             }
         }
-        System.out.println("数据源不存在!");
+        if(target == null){
+            System.out.println("当前用户没有这个数据源！");
+        }
+        else{
+            System.out.println("已找到，读取这个数据源是：");
+            List<String[]> csvData = readCsv(target.getParameter());
+            for(String[] row : csvData){
+                System.out.println(Arrays.toString(row));
+            }
+        }
+
     }
     //查
 
@@ -190,6 +196,36 @@ public class DateSourceService {
     }
 
     /**
+     * 根据后缀得到文件类型
+     * @param filename
+     * @return csv txt等
+     */
+    private String getFileType(String filename){
+        int index = filename.lastIndexOf(".");
+        if(index == -1 || index == filename.length()-1){
+            return "";
+        }
+        return filename.substring(index+1);
+    }
+
+    /**
+     * 读取csv文件
+     * @param filePath
+     * @return csv文件列表
+     * @throws IOException
+     */
+    private List<String[]> readCsv(String filePath) throws IOException {
+        List<String[]> result = new ArrayList<>();
+        try (CSVParser parser = new CSVParser(new FileReader(filePath), CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
+            for (CSVRecord record : parser) {
+                String[] row = record.values();
+                result.add(row);
+            }
+        }
+        return result;
+    }
+
+    /**
      * 字符串首字母大写
      * @param str
      * @return str
@@ -200,7 +236,6 @@ public class DateSourceService {
         }
         return str.substring(0,1).toUpperCase() + str.substring(1);
     }
-
     /**
      * 得到所有用户的所有数据源列表
      * @return 数据源列表
@@ -221,4 +256,5 @@ public class DateSourceService {
             return dataList;
         }
     }
+
 

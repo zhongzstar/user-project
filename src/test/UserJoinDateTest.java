@@ -37,10 +37,10 @@ public class UserJoinDateTest {
              //3.2删别人的数据源
             dateSourceService.delete(dateSource2, zhangSan);
             System.out.println("结束");
-            //4.修改真实的数据源文件
-            //张三改数据源1
-
-
+            //4.读取真实的数据源文件
+            //张三读取数据源1
+            DateSource readDateSource = new DateSource(8,"脱敏数据源8","txt","src/main/resources/DateSource1.csv",7,"张三");
+            dateSourceService.readDataSource(zhangSan,readDateSource);
         }
         catch(Exception e){
             e.printStackTrace();

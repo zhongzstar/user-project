@@ -47,7 +47,6 @@ public class UserService {
     //1.登录
     public User login(User user) throws Exception{
         User _user = new User();
-        _user = null;
         boolean have_user_flag = false;
         boolean password_right_or_false = false;
         try(BufferedReader read  = new BufferedReader(new FileReader(user_path))){

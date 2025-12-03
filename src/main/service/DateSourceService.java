@@ -2,17 +2,31 @@ package main.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import main.domain.DateSource;
+import main.domain.User;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class DateSourceService {
-    private String filename = "src/main/resources/DateSource.json";
     private ObjectMapper objectMapper = new ObjectMapper();
-
+    private String filename = "src/main/resources/DateSource.json";
+    private File file = new File(filename);
+    private List<DateSource> dataList = null;
+    private Map<String, Class<?>> fieldTypes = new HashMap<>();
+    public DateSourceService() {
+        fieldTypes = new HashMap<>();
+        fieldTypes.put("configid", int.class);
+        fieldTypes.put("dataid", int.class);
+        fieldTypes.put("dataname", String.class);
+        fieldTypes.put("type", String.class);
+        fieldTypes.put("parameter", String.class);
+        fieldTypes.put("username", String.class);
+    }
     //增
     /**
      * 添加数据源到Json文件
@@ -20,18 +34,8 @@ public class DateSourceService {
      * @throws Exception 读写文件或者解析JSON文件失败
      */
     public void add(DateSource dateSource) throws Exception{
-        File file = new File(filename);
-        List<DateSource> dataList;
-        //1.若文件存在且不为空，把json数据读取到datalist列表中。
-        if(file.exists() && file.length() > 0){
-            dataList = objectMapper.readValue(file,objectMapper.getTypeFactory().constructCollectionType(List.class, DateSource.class));
-        }
-        //2.若文件不存在或为空，重新创建一个datalist列表
-        else{
-            dataList = new ArrayList<>();
-        }
-
-        //3.检查ID是否已存在
+        List<DateSource> dataList = getDataList();
+        //检查ID是否已存在
         if(findById(dateSource.getDataid()) != null){
             System.out.println("该数据源ID已经存在！");
         }
@@ -47,21 +51,23 @@ public class DateSourceService {
      * @param dateSource 需要删除的数据源
      * @throws Exception 读写文件会出错
      */
-    public void delete(DateSource dateSource)throws Exception{
-        File file = new File(filename);
+    public void delete(DateSource dateSource,User user)throws Exception{
         if(!file.exists() || file.length() == 0){
             System.out.println("文件不存在！无法删除");
             return;
         }
-        List<DateSource> dataList = objectMapper.readValue(file,
-                objectMapper.getTypeFactory().constructCollectionType(List.class, DateSource.class));
-        
+        List<DateSource> dataList = getDataList();
         // 根据ID查找并删除对象
         DateSource existing = findById(dateSource.getDataid());
         if(existing != null){
-            dataList.remove(existing);
-            objectMapper.writeValue(file, dataList);
-            System.out.println("删除成功！");
+            if(existing.getUsername().equals(user.getName())){
+                dataList.remove(existing);
+                objectMapper.writeValue(file,dataList);
+                System.out.println("已成功删除当前用户的资源");
+            }
+            else{
+                System.out.println("当前用户没有权限，无法删除！");
+            }
         }
         else{
             System.out.println("数据源不存在!无法删除");
@@ -74,38 +80,63 @@ public class DateSourceService {
      * @param columName 列名
      * @param content 要更改的内容
      */
-    public void update(DateSource dateSource, String columName, String content){
+    public void update(DateSource dateSource,User user, String columName, String content)throws Exception{
+        boolean flag = false;
         try{
-            File file = new File(filename);
-            List<DateSource> dataList;
-            boolean flag = false;
-            //1.读取数据库或创建空datalist
-            if (file.exists() && file.length() > 0) {
-                dataList = objectMapper.readValue(file,
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, DateSource.class));
-            } else {
-                dataList = new ArrayList<>();
-            }
-            //2.根据ID查找对象并更新
-            for(DateSource dS : dataList){
-                if(dS.getDataid() == dateSource.getDataid()){
-                    Method method = dS.getClass().getMethod("set" + capitalize(columName),String.class);
-                    method.invoke(dS,content);
+            //1.获得所有用户的数据源
+            List<DateSource> dataList = getDataList();
+            //2.所有用户数据源中找到这个用户这个id的数据源并且更改
+            for(DateSource ds : dataList){
+                if((ds.getDataid() == dateSource.getDataid()) && (ds.getUsername().equals(user.getName()))){
+                    // 1. 确定字段类型
+                    Class<?> paramType = fieldTypes.get(columName);
+                    Object value = null;
+                    // 2. 根据类型进行转换
+                    if (paramType == Integer.class || paramType == int.class) {
+                        value = Integer.parseInt(content);
+                    }
+                    else if (paramType == String.class) {
+                        value = content;
+                    }
+                    else {
+                        throw new IllegalArgumentException("不支持的字段类型：" + paramType);
+                    }
+                    // 3. 获取并调用 setter 方法
+                    Method method = ds.getClass().getMethod("set" + capitalize(columName), paramType);
+                    method.invoke(ds, value);
                     flag = true;
+                    //找到了退出循环
+                    break;
                 }
             }
-            //3.更新数据库
+            //3.根据2.更新数据库
             if(flag){
                 objectMapper.writeValue(file,dataList);
                 System.out.println("数据已经更新！");
             }
             else{
-                System.out.println("数据添加失败！");
+                System.out.println("数据更新失败!用户数据源不匹配!");
             }
         }
         catch (Exception e){
             e.printStackTrace();
+            throw e;
         }
+    }
+    public void readDataSource(User user,DateSource dateSource){
+        if(dataList.contains(dateSource)){
+            for(DateSource ds : dataList){
+                if(ds.getUsername().equals(user.getName())){
+                    //有权限读取该数据源内容
+                    System.out.println("已生成该数据源！");
+                }
+                //无权限不读取
+                else{
+                    System.out.println("无权限读取该数据源！");
+                }
+            }
+        }
+        System.out.println("数据源不存在!");
     }
     //查
 
@@ -115,33 +146,47 @@ public class DateSourceService {
      * @throws Exception
      */
     public List<DateSource> findAll()throws Exception{
-        List<DateSource> dateList = new ArrayList();
-        File file = new File(filename);
-        dateList = objectMapper.readValue(file, objectMapper.getTypeFactory().constructCollectionType(List.class, DateSource.class));
+        List<DateSource> dateList = getDataList();
         return dateList;
     }
     /**
      * 根据ID查找数据源对象
      * @param id 数据源ID
-     * @return 找到返回数据源对象，未找到返回null
+     * @return 一个数据源对象
      */
     public DateSource findById(int id) throws Exception{
-        File file = new File(filename);
-        List<DateSource> dataList;
-        //1.避免因文件不存在导致的异常
-        if(file.exists() && file.length()>0){
-            dataList = objectMapper.readValue(file, objectMapper.getTypeFactory().constructCollectionType(List.class, DateSource.class));
-        }
-        else{
-            return null;
-        }
-        //2.获取指定ID的对象
-        for(DateSource dR : dataList){
-            if(dR.getDataid() == id){
-                return dR;
+       try{
+           List<DateSource> dataList = getDataList();
+           //获取指定ID的对象
+           for(DateSource dR : dataList){
+               if(dR.getDataid() == id){
+                   return dR;
+               }
+           }
+           return null;
+       }
+       catch(Exception e){
+           System.out.println("查找数据源出错" + e.getMessage());
+           throw e;
+       }
+    }
+    /**
+     * 根据用户对象找到数据源
+     * @param user
+     * @return 一个用户数据源列表
+     * @throws Exception
+     */
+    public List<DateSource> findByUsername(User user) throws Exception{
+        List<DateSource> dataList = getDataList();
+        List<DateSource> res = new ArrayList<>();
+        if(user != null && user.getName()!=null) {
+            for(DateSource ds : dataList){
+                if(ds.getUsername().equals(user.getName())){
+                    res.add(ds);
+                }
             }
         }
-        return null;
+        return res;
     }
 
     /**
@@ -155,4 +200,25 @@ public class DateSourceService {
         }
         return str.substring(0,1).toUpperCase() + str.substring(1);
     }
-}
+
+    /**
+     * 得到所有用户的所有数据源列表
+     * @return 数据源列表
+     * @throws Exception
+     */
+    private List<DateSource> getDataList() throws Exception{
+            if(dataList == null){// 第一次检查：快速判断是否已初始化
+                synchronized (this){ // 加锁，防止竞争，只有当前线程可以访问
+                    if(dataList == null){// 第二次检查：确认是否真的需要初始化
+                        dataList = objectMapper.readValue(file,
+                                objectMapper.getTypeFactory().constructCollectionType(List.class, DateSource.class));
+                    }
+                    else{
+                        dataList = new ArrayList<>();
+                    }
+                }
+            }
+            return dataList;
+        }
+    }
+

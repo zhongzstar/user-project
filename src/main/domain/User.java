@@ -5,7 +5,14 @@ public class User {
     private String password;
     private String answer;
     private String question;
-    public void User(){
+    public User(){
+    }
+
+    public User(String name, String password, String answer, String question) {
+        this.name = name;
+        this.password = password;
+        this.answer = answer;
+        this.question = question;
     }
 
     public String getName(){

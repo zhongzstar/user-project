@@ -1,0 +1,2 @@
+configid,configtype,configusername,configpassword,confighost,configport,configpath,username
+0,mysql,user1,password1,localhost,3306,/path/to/config,user1

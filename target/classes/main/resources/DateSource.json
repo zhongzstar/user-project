@@ -1,1 +1,42 @@
-[{"dataid":3,"dataname":"txt","type":"脱敏数据源1","parameter":"/src/main/resources","username":"zz","configid":1},{"dataid":4,"dataname":"txt","type":"脱敏数据源4","parameter":"/src/main/resources/DateSource3.csv","username":"zz","configid":4},{"dataid":5,"dataname":"txt","type":"脱敏数据源5","parameter":"/src/main/resources","username":"zz","configid":5},{"dataid":7,"dataname":"txt","type":"脱敏数据源7","parameter":"src/main/resources/DateSource2.txt","username":"张三","configid":7},{"dataid":8,"dataname":"txt","type":"脱敏数据源8","parameter":"src/main/resources/DateSource1.csv","username":"张三","configid":7}]
+[
+  {
+    "dataid": 3,
+    "dataname": "txt",
+    "type": "脱敏数据源1",
+    "parameter": "/src/main/resources",
+    "username": "zz",
+    "configid": 1
+  },
+  {
+    "dataid": 4,
+    "dataname": "txt",
+    "type": "脱敏数据源4",
+    "parameter": "/src/main/resources/DateSource3.csv",
+    "username": "zz",
+    "configid": 4
+  },
+  {
+    "dataid": 5,
+    "dataname": "txt",
+    "type": "脱敏数据源5",
+    "parameter": "/src/main/resources",
+    "username": "zz",
+    "configid": 5
+  },
+  {
+    "dataid": 7,
+    "dataname": "txt",
+    "type": "脱敏数据源7",
+    "parameter": "src/main/resources/DateSource2.txt",
+    "username": "张三",
+    "configid": 7
+  },
+  {
+    "dataid": 8,
+    "dataname": "txt",
+    "type": "脱敏数据源8",
+    "parameter": "src/main/resources/DateSource1.csv",
+    "username": "张三",
+    "configid": 7
+  }
+]

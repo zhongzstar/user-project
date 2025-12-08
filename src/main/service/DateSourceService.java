@@ -26,6 +26,13 @@ public class DateSourceService {
         fieldTypes.put("type", String.class);
         fieldTypes.put("parameter", String.class);
         fieldTypes.put("username", String.class);
+        try{
+            dataList = getDataList();
+        }
+        catch (Exception e){
+            System.out.println("读取文件失败！");
+            dataList = new ArrayList<>();
+        }
     }
     //增
     /**
@@ -34,7 +41,6 @@ public class DateSourceService {
      * @throws Exception 读写文件或者解析JSON文件失败
      */
     public void add(DateSource dateSource) throws Exception{
-        List<DateSource> dataList = getDataList();
         //检查ID是否已存在
         if(findById(dateSource.getDataid()) != null){
             System.out.println("该数据源ID已经存在！");
@@ -56,7 +62,6 @@ public class DateSourceService {
             System.out.println("文件不存在！无法删除");
             return;
         }
-        List<DateSource> dataList = getDataList();
         // 根据ID查找并删除对象
         DateSource existing = findById(dateSource.getDataid());
         if(existing != null){
@@ -83,9 +88,7 @@ public class DateSourceService {
     public void update(DateSource dateSource,User user, String columName, String content)throws Exception{
         boolean flag = false;
         try{
-            //1.获得所有用户的数据源
-            List<DateSource> dataList = getDataList();
-            //2.所有用户数据源中找到这个用户这个id的数据源并且更改
+            //1.所有用户数据源中找到这个用户这个id的数据源并且更改
             for(DateSource ds : dataList){
                 if((ds.getDataid() == dateSource.getDataid()) && (ds.getUsername().equals(user.getName()))){
                     // 1. 确定字段类型
@@ -109,7 +112,7 @@ public class DateSourceService {
                     break;
                 }
             }
-            //3.根据2.更新数据库
+            //2.根据1.更新数据库
             if(flag){
                 objectMapper.writeValue(file,dataList);
                 System.out.println("数据已经更新！");
@@ -152,8 +155,7 @@ public class DateSourceService {
      * @throws Exception
      */
     public List<DateSource> findAll()throws Exception{
-        List<DateSource> dateList = getDataList();
-        return dateList;
+        return dataList;
     }
     /**
      * 根据ID查找数据源对象
@@ -162,7 +164,6 @@ public class DateSourceService {
      */
     public DateSource findById(int id) throws Exception{
        try{
-           List<DateSource> dataList = getDataList();
            //获取指定ID的对象
            for(DateSource dR : dataList){
                if(dR.getDataid() == id){
@@ -183,7 +184,7 @@ public class DateSourceService {
      * @throws Exception
      */
     public List<DateSource> findByUsername(User user) throws Exception{
-        List<DateSource> dataList = getDataList();
+
         List<DateSource> res = new ArrayList<>();
         if(user != null && user.getName()!=null) {
             for(DateSource ds : dataList){

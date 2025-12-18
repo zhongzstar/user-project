@@ -1,0 +1,3 @@
+methodid,methodname,type,maskmethod,parameter,username
+1,移动手机号脱敏,phone,替换,前3后4,user1
+2,邮箱脱敏,email,替换,前2后3,user1
